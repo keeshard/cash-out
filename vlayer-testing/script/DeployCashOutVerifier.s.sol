@@ -13,7 +13,7 @@ contract CashOutVerifierScript is Script {
         vm.startBroadcast();
 
         cashOutVerifier = new CashOutVerifier(
-            0x08206f4746671Dd30DD583bE16092598524882CA
+            0x9Fdd1aBd04EfB20dfcB96F104a478Cff4070c6a2
         );
 
         vm.stopBroadcast();

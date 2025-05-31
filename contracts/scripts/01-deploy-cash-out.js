@@ -44,23 +44,23 @@ async function main() {
     JSON.stringify(deploymentData, null, 2)
   );
 
-  // Verify CashOut contract
-  console.log("Waiting for block confirmations...");
-  await cashOut.deploymentTransaction().wait(5);
+  // // Verify CashOut contract
+  // console.log("Waiting for block confirmations...");
+  // await cashOut.deploymentTransaction().wait(5);
 
-  // Verify contract on Etherscan if not on a local network
-  if (network !== "localhost" && network !== "hardhat") {
-    console.log("Verifying contract on Etherscan...");
-    try {
-      await hre.run("verify:verify", {
-        address: cashOutAddress,
-        constructorArguments: [],
-      });
-      console.log("Contract verified successfully");
-    } catch (error) {
-      console.log("Error verifying contract:", error.message);
-    }
-  }
+  // // Verify contract on Etherscan if not on a local network
+  // if (network !== "localhost" && network !== "hardhat") {
+  //   console.log("Verifying contract on Etherscan...");
+  //   try {
+  //     await hre.run("verify:verify", {
+  //       address: cashOutAddress,
+  //       constructorArguments: [],
+  //     });
+  //     console.log("Contract verified successfully");
+  //   } catch (error) {
+  //     console.log("Error verifying contract:", error.message);
+  //   }
+  // }
 }
 
 main()

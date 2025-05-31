@@ -1617,7 +1617,6 @@ export const EMAIL_PROVER_ABI = [
     stateMutability: "nonpayable",
   },
   { type: "error", name: "FailedCall", inputs: [] },
-  { type: "error", name: "StringsInvalidChar", inputs: [] },
 ];
 
 export const CASH_OUT_VERIFIER_ABI = [
@@ -1977,73 +1976,6 @@ export const CASH_OUT_VERIFIER_ABI = [
     type: "function",
     name: "verifyCrosschainBalance",
     inputs: [
-      {
-        name: "proof",
-        type: "tuple",
-        internalType: "struct Proof",
-        components: [
-          {
-            name: "seal",
-            type: "tuple",
-            internalType: "struct Seal",
-            components: [
-              {
-                name: "verifierSelector",
-                type: "bytes4",
-                internalType: "bytes4",
-              },
-              {
-                name: "seal",
-                type: "bytes32[8]",
-                internalType: "bytes32[8]",
-              },
-              {
-                name: "mode",
-                type: "uint8",
-                internalType: "enum ProofMode",
-              },
-            ],
-          },
-          {
-            name: "callGuestId",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-          { name: "length", type: "uint256", internalType: "uint256" },
-          {
-            name: "callAssumptions",
-            type: "tuple",
-            internalType: "struct CallAssumptions",
-            components: [
-              {
-                name: "proverContractAddress",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "functionSelector",
-                type: "bytes4",
-                internalType: "bytes4",
-              },
-              {
-                name: "settleChainId",
-                type: "uint256",
-                internalType: "uint256",
-              },
-              {
-                name: "settleBlockNumber",
-                type: "uint256",
-                internalType: "uint256",
-              },
-              {
-                name: "settleBlockHash",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-            ],
-          },
-        ],
-      },
       { name: "account", type: "address", internalType: "address" },
       { name: "usdAmount", type: "uint256", internalType: "uint256" },
     ],
@@ -2136,13 +2068,12 @@ export const CASH_OUT_VERIFIER_ABI = [
 ];
 
 export const CASH_OUT_PROVER_ADDRESS =
-  "0x08206f4746671Dd30DD583bE16092598524882CA";
+  "0x9Fdd1aBd04EfB20dfcB96F104a478Cff4070c6a2";
 
 export const CASH_OUT_VERIFIER_ADDRESS =
-  "0x17f2DE6B4dd4D0566852E41eFFB8034a0A317b22";
+  "0x30759F7Ea3f39E8d4C05ACC238f39e91353Dc048";
 
-export const CASH_OUT_ADDRESS = process.env
-  .NEXT_PUBLIC_CASH_OUT_ADDRESS as `0x${string}`;
+export const CASH_OUT_ADDRESS = "0x935A5B36C923CDFfD3986f2488E92Cf2D1d8c09D";
 
 export const TOKEN_ADDRESSES = {
   31: {
