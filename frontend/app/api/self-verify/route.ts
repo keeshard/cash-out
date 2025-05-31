@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const configuredVerifier = new SelfBackendVerifier(
       "cash-out",
-      "https://4810-195-113-187-136.ngrok-free.app",
+      process.env.NEXT_PUBLIC_DOMAIN || "",
       "uuid",
       true
     );
