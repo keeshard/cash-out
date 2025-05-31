@@ -11,7 +11,7 @@ import {
   useChain,
 } from "@vlayer/react";
 import { preverifyEmail } from "@vlayer/sdk";
-import { AbiStateMutability, ContractFunctionArgs } from "viem";
+import { Abi, AbiStateMutability, ContractFunctionArgs } from "viem";
 import {
   AlreadyMintedError,
   NoProofError,
@@ -26,7 +26,7 @@ import {
 } from "@/lib/constants";
 
 enum ProofVerificationStep {
-  MINT = "Mint",
+  READY = "Ready",
   SENDING_TO_PROVER = "Sending to prover...",
   WAITING_FOR_PROOF = "Waiting for proof...",
   VERIFYING_ON_CHAIN = "Verifying on-chain...",
@@ -38,7 +38,7 @@ export const useEmailProofVerification = () => {
   const [prover, setProver] = useState<string>("");
   const { data: balance } = useBalance({ address });
   const [currentStep, setCurrentStep] = useState<ProofVerificationStep>(
-    ProofVerificationStep.MINT
+    ProofVerificationStep.READY
   );
 
   const {
@@ -57,7 +57,8 @@ export const useEmailProofVerification = () => {
     data: proofHash,
     error: callProverError,
   } = useCallProver({
-    proverAbi: EMAIL_PROVER_ABI,
+    address: "0xF2d772ba64A3252B13C2B4B9D217BE681D898B86",
+    proverAbi: EMAIL_PROVER_ABI as Abi,
     functionName: "proveInvoiceEmail",
     gasLimit: 10000000,
     chainId: sepolia.id,
@@ -99,8 +100,8 @@ export const useEmailProofVerification = () => {
     try {
       const email = await preverifyEmail({
         mimeEmail: emlContent,
-        dnsResolverUrl: process.env.NEXT_PUBLIC_DNS_SERVICE_URL,
-        token: process.env.NEXT_PUBLIC_VLAYER_EMAIL_API_TOKEN,
+        dnsResolverUrl: process.env.NEXT_PUBLIC_DNS_SERVICE_URL || "",
+        token: process.env.NEXT_PUBLIC_VLAYER_EMAIL_API_TOKEN || "",
       });
       await callProver([email]);
     } catch (error) {
@@ -112,7 +113,7 @@ export const useEmailProofVerification = () => {
   useEffect(() => {
     if (proof) {
       console.log("proof", proof);
-      // void verifyProofOnChain();
+      void verifyProofOnChain();
     }
   }, [proof]);
 

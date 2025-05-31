@@ -19,7 +19,8 @@ contract EthGlobalInvoiceProver is Prover {
     }
 
     mapping(address => Claim) public claims;
-    string public constant AUTHORIZED_EMAIL = "jacob@ethglobal.com";
+    string public constant AUTHORIZED_EMAIL =
+        "6f0c1d8b-3bfc-4d76-8d90-5d740fa9be6e@proving.vlayer.xyz";
 
     function registerClaim(
         address targetWallet,
@@ -45,7 +46,7 @@ contract EthGlobalInvoiceProver is Prover {
 
         return (
             proof(),
-            sha256(abi.encodePacked(email.body)),
+            sha256(abi.encodePacked(email.subject)),
             msg.sender,
             prizeAmount
         );
@@ -56,7 +57,7 @@ contract EthGlobalInvoiceProver is Prover {
         Claim memory claim
     ) private view {
         string[] memory subjectCapture = email.subject.capture(
-            "Congratulations on winning prizes at ([^\\n]+?) as part of project ([^\\n!]+)"
+            "Congratulations on winning prizes at ^([^\\n]+?)$ as part of project ^([^\\n!]+)$"
         );
         require(subjectCapture.length == 2, "insufficient subject captures");
         require(
@@ -69,8 +70,9 @@ contract EthGlobalInvoiceProver is Prover {
         );
 
         string[] memory emailCapture = email.from.capture(
-            "^jacob@ethglobal\\.com$"
+            "^6f0c1d8b-3bfc-4d76-8d90-5d740fa9be6e@proving\\.vlayer\\.xyz$"
         );
+
         require(emailCapture.length == 1, "invalid sender email");
         require(
             emailCapture[0].equal(AUTHORIZED_EMAIL),
@@ -83,20 +85,22 @@ contract EthGlobalInvoiceProver is Prover {
         string memory userEmail
     ) private view returns (uint256) {
         string memory pattern = string.concat(
+            "^",
             userEmail,
-            " - \\$(\\d+\\.\\d{2})"
-        );
-        string[] memory prizeAmountCaptures = body.capture(pattern);
-        require(
-            prizeAmountCaptures.length == 3,
-            "could not extract prize amount"
+            " - \\$(\\d+)(?:\\.(\\d{2}))?$"
         );
 
-        string memory fracPartStr = prizeAmountCaptures[2];
-        uint256 fracLength = bytes(fracPartStr).length;
-        uint256 fracValue = fracPartStr.parseUint();
-        uint256 scale = 1e18 / (10 ** fracLength);
+        string[] memory captures = body.capture(pattern);
 
-        return prizeAmountCaptures[1].parseUint() * 1e18 + fracValue * scale;
+        require(captures.length >= 2, "could not extract prize amount");
+
+        uint256 dollars = captures[1].parseUint();
+        uint256 cents = 0;
+
+        if (captures.length == 3 && bytes(captures[2]).length > 0) {
+            cents = captures[2].parseUint();
+        }
+
+        return dollars * 1e18 + cents * 1e16; // supports 18 decimal fixed-point
     }
 }
