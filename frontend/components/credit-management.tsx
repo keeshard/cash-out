@@ -21,10 +21,10 @@ import {
 import { useLinkAccount, useWallets } from "@privy-io/react-auth";
 import BinanceProofCard from "./proof-card/binance";
 import BybitProofCard from "./proof-card/bybit";
-import WalletProofComponent from "./proof-card/wallet";
-import GenerateProofComponent from "./test-proof/generate";
+import WalletProofComponent from "./proof/wallet";
 import BinanceProofComponent from "./proof/binance";
 import BybitProofComponent from "./proof/bybit";
+import WalletProofCard from "./proof-card/wallet";
 
 interface CreditManagementProps {
   creditAmount: number;
@@ -193,7 +193,7 @@ export function CreditManagement({
             />
 
             {/* External Wallet Proof */}
-            <WalletProofComponent
+            <WalletProofCard
               selectedProofMethod={selectedProofMethod || ""}
               setSelectedProofMethod={setSelectedProofMethod}
             />
@@ -257,10 +257,9 @@ export function CreditManagement({
                     )}
                   </Button>
                 ) : (
-                  <GenerateProofComponent
-                    isGeneratingProof={isGeneratingProof}
-                    handleGenerateProof={() => {}}
-                    selectedProofMethod={selectedProofMethod || ""}
+                  <WalletProofComponent
+                    creditAmount={creditAmount}
+                    setCreditAmount={setCreditAmount}
                   />
                 )}
               </div>

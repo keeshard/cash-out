@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
 
-export default function WalletProofComponent({
+export default function WalletProofCard({
   selectedProofMethod,
   setSelectedProofMethod,
 }: {

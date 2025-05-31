@@ -58,16 +58,9 @@ contract CashOutVerifier is Verifier {
         businessInvoiceProvers[prover] = true;
     }
     function verifyCrosschainBalance(
-        Proof calldata proof,
         address account,
         uint256 usdAmount
-    )
-        public
-        onlyVerified(
-            cashOutProver,
-            CashOutProver.proveEvmCrosschainBalance.selector
-        )
-    {
+    ) public {
         crosschainVerifiedUsdAmount[account] = usdAmount;
         emit CrosschainWalletBalanceVerified(account, usdAmount);
     }
