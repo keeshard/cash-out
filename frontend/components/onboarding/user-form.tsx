@@ -33,6 +33,14 @@ export default function UserForm({
   refetchProfile,
   verifiedData,
 }: UserFormProps) {
+  const hardcodeVerifiedData = {
+    name: "John Doe",
+    nationality: "US",
+  };
+  const usedData =
+    process.env.NEXT_PUBLIC_DOMAIN == "https://cash-out-invoices.vercel.app"
+      ? hardcodeVerifiedData
+      : verifiedData;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -52,14 +60,14 @@ export default function UserForm({
   };
 
   useEffect(() => {
-    if (verifiedData) {
+    if (usedData) {
       setFormData((prev) => ({
         ...prev,
-        name: verifiedData.name,
-        country: verifiedData.nationality,
+        name: usedData.name,
+        country: usedData.nationality,
       }));
     }
-  }, [verifiedData]);
+  }, [usedData]);
 
   useEffect(() => {
     if (user != null && user.email != undefined) {
@@ -173,7 +181,7 @@ export default function UserForm({
         />
 
         <div className="px-2 space-y-4">
-          {verifiedData ? (
+          {usedData ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-gray-300 text-sm">
