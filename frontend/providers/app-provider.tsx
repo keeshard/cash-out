@@ -18,19 +18,14 @@ export default function AppProvider({
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
       clientId={process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID || ""}
       config={{
-        embeddedWallets: {
-          ethereum: {
-            createOnLogin: "users-without-wallets",
-          },
-        },
         appearance: {
           theme: "dark",
-          logo: "https://pharos-invoices.vercel.app/logo.jpg",
+          logo: "http://cash-out.vercel.app/logo.jpg",
           accentColor: "#FACC15",
           walletChainType: "ethereum-only",
           walletList: ["metamask", "rainbow"],
         },
-        loginMethods: ["email", "wallet"],
+        loginMethods: ["wallet"],
         supportedChains: [
           JSON.parse(process.env.NEXT_PUBLIC_IS_MAINNET || "false")
             ? rootstock
@@ -45,7 +40,10 @@ export default function AppProvider({
               proverUrl: process.env.NEXT_PUBLIC_PROVER_URL || "",
               wsProxyUrl: process.env.NEXT_PUBLIC_WS_PROXY_URL || "",
               notaryUrl: process.env.NEXT_PUBLIC_NOTARY_URL || "",
-              token: process.env.NEXT_PUBLIC_VLAYER_BINANCE_API_TOKEN || "",
+              token:
+                process.env.NEXT_PUBLIC_CURRENT_WEB_PROVER === "binance"
+                  ? process.env.NEXT_PUBLIC_VLAYER_BINANCE_API_TOKEN || ""
+                  : process.env.NEXT_PUBLIC_VLAYER_BYBIT_API_TOKEN || "",
             }}
           >
             {children}

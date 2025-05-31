@@ -11,7 +11,7 @@ const userId = uuidv4();
 // Create a SelfApp instance using the builder pattern
 export const selfApp = new SelfAppBuilder({
   appName: "Cash Out",
-  scope: "pharos-invoices",
+  scope: "cash-out",
   endpoint: "https://pharos-invoices.vercel.app/api/self-verify",
   endpointType: "https",
   logoBase64: "<base64EncodedLogo>", // Optional, accepts also PNG url

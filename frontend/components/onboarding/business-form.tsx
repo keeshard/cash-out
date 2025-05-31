@@ -35,17 +35,15 @@ interface BusinessFormProps {
   refetchProfile: () => void;
   verifiedData: VerifiedData | null;
 }
-const verifiedData = {
-  name: "John Doe",
-  nationality: "US",
-};
+
 export default function BusinessForm({
   onBack,
   showVerification,
   profile,
   setProfile,
   refetchProfile,
-}: // verifiedData,
+ verifiedData,
+}:
 BusinessFormProps) {
   const [formData, setFormData] = useState({
     name: "John Doe",
@@ -80,15 +78,15 @@ BusinessFormProps) {
     reader.readAsDataURL(file);
   };
 
-  // useEffect(() => {
-  //   if (verifiedData) {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       name: verifiedData.name,
-  //       businessCountry: verifiedData.nationality,
-  //     }));
-  //   }
-  // }, [verifiedData]);
+  useEffect(() => {
+    if (verifiedData) {
+      setFormData((prev) => ({
+        ...prev,
+        name: verifiedData.name,
+        businessCountry: verifiedData.nationality,
+      }));
+    }
+  }, [verifiedData]);
 
   const handleSubmit = async () => {
     if (!user?.wallet?.address) return;

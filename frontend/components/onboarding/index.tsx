@@ -97,7 +97,7 @@ export default function Onboarding({
   const selfApp = new SelfAppBuilder({
     appName: "Cash Out",
     scope: "cash-out",
-    endpoint: "https://4810-195-113-187-136.ngrok-free.app/api/self-verify",
+    endpoint: (process.env.NEXT_PUBLIC_DOMAIN || "") + "/api/self-verify",
     endpointType: "https",
     devMode: true,
     userId: userId,
