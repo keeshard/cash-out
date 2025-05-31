@@ -4,6 +4,7 @@ import { useLocalStorage } from "usehooks-ts";
 import { CallProverError } from "@/lib/errors";
 import { CASH_OUT_PROVER_ABI, CASH_OUT_PROVER_ADDRESS } from "@/lib/constants";
 import { sepolia } from "viem/chains";
+import { Abi } from "viem";
 
 export const useBalanceTimeTravelProof = () => {
   const [, setProverResult] = useLocalStorage("proverResult", "");
@@ -14,7 +15,7 @@ export const useBalanceTimeTravelProof = () => {
     error: provingError,
   } = useCallProver({
     address: CASH_OUT_PROVER_ADDRESS,
-    proverAbi: CASH_OUT_PROVER_ABI,
+    proverAbi: CASH_OUT_PROVER_ABI as Abi,
     functionName: "proveBasic",
     gasLimit: 10000000,
     chainId: sepolia.id,

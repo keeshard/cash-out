@@ -15,12 +15,17 @@ import { InvoiceProofComponent } from "@/components/proof/invoice-proof";
 import { BalanceProofComponent } from "@/components/proof/balance-proof";
 import { BinanceProofComponent } from "@/components/proof/binance-proof";
 
-type ProofType = "twitter" | "binance" | "invoice" | "balance" | null;
+type ProofType = "twitter" | "bybit" | "binance" | "invoice" | "balance" | null;
 
 export default function VlayerTestingPage() {
   const [selectedProof, setSelectedProof] = useState<ProofType>(null);
 
-  const proofOptions = [
+  const proofOptions: {
+    id: ProofType;
+    title: string;
+    description: string;
+    component: any;
+  }[] = [
     {
       id: "twitter" as const,
       title: "Twitter Web Proof",

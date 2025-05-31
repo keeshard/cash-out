@@ -128,7 +128,7 @@ export const useBybitWebProof = () => {
           address: CASH_OUT_VERIFIER_ADDRESS,
           abi: CASH_OUT_VERIFIER_ABI,
           functionName: "verifyBybitFunds",
-          args: result,
+          args: result as any[],
         });
 
         if (chainId != sepolia.id)
@@ -139,7 +139,7 @@ export const useBybitWebProof = () => {
             address: CASH_OUT_ADDRESS,
             abi: CASH_OUT_ABI,
             functionName: "upgradeLimit",
-            args: [result[1], result[2]],
+            args: [(result as string[])[1], (result as string[])[2]],
             account: rootstockServerWalletClient.account,
           });
         const tx = await sepoliaWalletClient.writeContract(request);
@@ -195,7 +195,7 @@ export const useBybitWebProof = () => {
           }
         );
       })();
-      setProverResult(result);
+      setProverResult(JSON.stringify(result));
     }
   }, [result]);
 

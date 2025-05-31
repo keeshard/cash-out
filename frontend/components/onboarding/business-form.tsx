@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { createProfile, useProfile } from "@/hooks/use-api";
+import { createProfile } from "@/hooks/use-api";
 import { uploadBusinessProfile } from "@/lib/upload";
 import { VerifiedData } from "@/types";
 import ImageUpload from "./image-upload";
@@ -42,9 +42,8 @@ export default function BusinessForm({
   profile,
   setProfile,
   refetchProfile,
- verifiedData,
-}:
-BusinessFormProps) {
+  verifiedData,
+}: BusinessFormProps) {
   const [formData, setFormData] = useState({
     name: "John Doe",
     businessName: "",
