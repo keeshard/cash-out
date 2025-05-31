@@ -44,14 +44,6 @@ export default function BusinessForm({
   refetchProfile,
   verifiedData,
 }: BusinessFormProps) {
-  const hardcodeVerifiedData = {
-    name: "John Doe",
-    nationality: "US",
-  };
-  const usedData =
-    process.env.NEXT_PUBLIC_DOMAIN == "https://cash-out-invoices.vercel.app"
-      ? hardcodeVerifiedData
-      : verifiedData;
   const [formData, setFormData] = useState({
     name: "John Doe",
     businessName: "",
@@ -86,14 +78,14 @@ export default function BusinessForm({
   };
 
   useEffect(() => {
-    if (usedData) {
+    if (verifiedData) {
       setFormData((prev) => ({
         ...prev,
-        name: usedData.name,
-        businessCountry: usedData.nationality,
+        name: verifiedData.name,
+        businessCountry: verifiedData.nationality,
       }));
     }
-  }, [usedData]);
+  }, [verifiedData]);
 
   const handleSubmit = async () => {
     if (!user?.wallet?.address) return;
@@ -268,7 +260,7 @@ export default function BusinessForm({
             </div>
           </div>
 
-          {usedData ? (
+          {verifiedData ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-gray-300 text-sm">
