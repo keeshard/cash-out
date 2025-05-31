@@ -6,7 +6,7 @@ import {
 } from "@vlayer/react";
 import { useLocalStorage } from "usehooks-ts";
 import { WebProofConfig, ProveArgs } from "@vlayer/sdk";
-import { Abi, ContractFunctionName } from "viem";
+import { Abi, Address, ContractFunctionName } from "viem";
 import { rootstockTestnet, sepolia } from "viem/chains";
 import { startPage, expectUrl, notarize } from "@vlayer/sdk/web_proof";
 import { WebProofError } from "@/lib/errors";
@@ -46,8 +46,7 @@ const webProofConfig: WebProofConfig<Abi, string> = {
     commitmentArgs: [],
     chainId: 1,
   },
-  logoUrl:
-    "https://pbs.twimg.com/profile_images/1894706611538530304/w9AEcEL8_400x400.jpg",
+  logoUrl: "https://cash-out-invoices.vercel.app/binance.png",
   steps: [
     startPage("https://www.binance.com", "Go to binance.com"),
     expectUrl("https://www.binance.com/en", "Expect to be redirected to en"),
@@ -194,7 +193,13 @@ export const useBinanceWebProof = () => {
           }
         );
       })();
-      setProverResult(JSON.stringify(result));
+      setProverResult(
+        JSON.stringify([
+          (result as any)[0],
+          (result as Address[])[1],
+          (result as bigint[])[2].toString(),
+        ])
+      );
     }
   }, [result]);
 

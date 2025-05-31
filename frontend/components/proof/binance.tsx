@@ -2,41 +2,79 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useBinanceWebProof } from "@/hooks/vlayer/use-binance-web-proof";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
+import GenerateProofComponent from "../test-proof/generate";
+import { useEffect } from "react";
+import { usePrivy } from "@privy-io/react-auth";
+import { formatUnits } from "viem";
 
 export default function BinanceProofComponent({
-  selectedProofMethod,
-  setSelectedProofMethod,
+  creditAmount,
+  setCreditAmount,
 }: {
-  selectedProofMethod: string;
-  setSelectedProofMethod: (method: string) => void;
+  creditAmount: number;
+  setCreditAmount: (amount: number) => void;
 }) {
+  const { user } = usePrivy();
+  const {
+    requestWebProof: requestBinanceWebProof,
+    webProof: binanceWebProof,
+    callProver: callBinanceProver,
+    isPending: isBinancePending,
+    isCallProverIdle: isBinanceCallProverIdle,
+    isWaitingForProvingResult: isBinanceWaitingForProvingResult,
+    commitmentTxHash: binanceCommitmentTxHash,
+    txHash: binanceTxHash,
+    result: binanceResult,
+  } = useBinanceWebProof();
+
+  useEffect(() => {
+    if (
+      binanceWebProof &&
+      isBinanceCallProverIdle &&
+      user &&
+      user.wallet &&
+      user.wallet.address
+    ) {
+      void callBinanceProver([binanceWebProof, user.wallet.address]);
+    }
+  }, [binanceWebProof, user, callBinanceProver, isBinanceCallProverIdle]);
+
+  useEffect(() => {
+    if (binanceResult && binanceCommitmentTxHash && binanceTxHash) {
+      console.log("Binance result:", binanceResult);
+      console.log("Binance commitment tx hash:", binanceCommitmentTxHash);
+      console.log("Binance tx hash:", binanceTxHash);
+
+      (async function () {
+        console.log("Upgrading credit amount");
+        await fetch("/api/businesses/upgrade", {
+          method: "POST",
+          body: JSON.stringify({
+            wallet: user?.wallet?.address,
+            amount: formatUnits(
+              BigInt((binanceResult as any)[2].toString()),
+              18
+            ),
+          }),
+        });
+        console.log("Credit amount upgraded");
+        setCreditAmount(
+          creditAmount +
+            parseFloat(
+              formatUnits(BigInt((binanceResult as any)[2].toString()), 18)
+            )
+        );
+      })();
+    }
+  }, [binanceResult, binanceCommitmentTxHash, binanceTxHash]);
+
   return (
-    <Card
-      className={`bg-stone-800 border-stone-600 cursor-pointer transition-colors hover:border-yellow-400 ${
-        selectedProofMethod === "binance" ? "border-yellow-400" : ""
-      }`}
-      onClick={() => setSelectedProofMethod("binance")}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
-          <Image
-            src="/binance.png"
-            alt="Binance"
-            width={35}
-            height={35}
-            className="rounded-full"
-          />
-          <div className="flex-1">
-            <h3 className="text-white font-medium">Binance Web App</h3>
-            <p className="text-gray-400 text-sm">
-              Generate ZK proof from to prove your assets value on Binance
-            </p>
-          </div>
-          {selectedProofMethod === "binance" && (
-            <CheckCircle className="h-5 w-5 text-yellow-400" />
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <GenerateProofComponent
+      isGeneratingProof={isBinancePending}
+      handleGenerateProof={() => {
+        requestBinanceWebProof();
+      }}
+      selectedProofMethod="binance"
+    />
   );
 }

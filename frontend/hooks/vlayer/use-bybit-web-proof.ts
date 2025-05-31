@@ -6,7 +6,7 @@ import {
 } from "@vlayer/react";
 import { useLocalStorage } from "usehooks-ts";
 import { WebProofConfig, ProveArgs } from "@vlayer/sdk";
-import { Abi, ContractFunctionName } from "viem";
+import { Abi, Address, ContractFunctionName } from "viem";
 import { rootstockTestnet, sepolia } from "viem/chains";
 import { startPage, expectUrl, notarize } from "@vlayer/sdk/web_proof";
 import { WebProofError } from "@/lib/errors";
@@ -195,7 +195,13 @@ export const useBybitWebProof = () => {
           }
         );
       })();
-      setProverResult(JSON.stringify(result));
+      setProverResult(
+        JSON.stringify([
+          (result as any)[0],
+          (result as Address[])[1],
+          (result as bigint[])[2].toString(),
+        ])
+      );
     }
   }, [result]);
 

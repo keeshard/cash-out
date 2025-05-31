@@ -43,64 +43,74 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   ) : profile ? (
     <div className="h-screen flex flex-col">
-      {pathname !== "/testing/vlayer" && <div className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 border-0">
-        <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Rootstock Logo" width={32} height={32} />
-          <span className="font-bold text-lg tracking-tight text-white">
-            Cash Out
-          </span>
+      {pathname !== "/testing/vlayer" && (
+        <div className="w-full flex items-center justify-between px-4 py-3 bg-stone-900 border-0">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="Rootstock Logo"
+              width={32}
+              height={32}
+            />
+            <span className="font-bold text-lg tracking-tight text-white">
+              Cash Out
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              className="flex space-x-1"
+              onClick={async () => {
+                clearProfile();
+                setUiState("initial");
+                logout();
+              }}
+            >
+              <LogOut className="w-5 h-5 text-white" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="flex space-x-1"
-            onClick={async () => {
-              clearProfile();
-              logout();
-            }}
-          >
-            <LogOut className="w-5 h-5 text-white" />
-          </Button>
-        </div>
-      </div>}
+      )}
       <div className="flex-1 max-w-md border-none">
         {children}
 
-       {pathname !== "/testing/vlayer" && <div className="fixed bottom-0 left-0 right-0 bg-stone-900 shadow- px-6 py-3 flex justify-around">
-          <button
-            className={`flex flex-col items-center ${
-              pathname === "/" ? "text-yellow-500" : "text-gray-400"
-            }`}
-            onClick={() => router.push("/")}
-          >
-            <Coins className="h-6 w-6" />
-            <span className="text-xs mt-1">Invoices</span>
-          </button>
-
-          {profile?.type === "user" && (
+        {pathname !== "/testing/vlayer" && (
+          <div className="fixed bottom-0 left-0 right-0 bg-stone-900 shadow- px-6 py-3 flex justify-around">
             <button
               className={`flex flex-col items-center ${
-                pathname === "/create" ? "text-yellow-500" : "text-gray-400"
+                pathname === "/" ? "text-yellow-500" : "text-gray-400"
               }`}
-              onClick={() => router.push("/create")}
+              onClick={() => router.push("/")}
             >
-              <div className="bg-yellow-400 rounded-full p-3 -mt-8 shadow-lg">
-                <PlusIcon className="h-6 w-6 text-stone-900" />
-              </div>
-              <span className="text-xs mt-1 text-gray-400">Create</span>
+              <Coins className="h-6 w-6" />
+              <span className="text-xs mt-1">Invoices</span>
             </button>
-          )}
 
-          <button
-            className={`flex flex-col items-center ${
-              pathname === "/profile" ? "text-yellow-500" : "text-gray-400"
-            }`}
-            onClick={() => router.push("/profile")}
-          >
-            <User className="h-6 w-6" />
-            <span className="text-xs mt-1">Profile</span>
-          </button>
-        </div>}
+            {profile?.type === "user" && (
+              <button
+                className={`flex flex-col items-center ${
+                  pathname === "/create" ? "text-yellow-500" : "text-gray-400"
+                }`}
+                onClick={() => router.push("/create")}
+              >
+                <div className="bg-yellow-400 rounded-full p-3 -mt-8 shadow-lg">
+                  <PlusIcon className="h-6 w-6 text-stone-900" />
+                </div>
+                <span className="text-xs mt-1 text-gray-400">Create</span>
+              </button>
+            )}
+
+            <button
+              className={`flex flex-col items-center ${
+                pathname === "/profile" ? "text-yellow-500" : "text-gray-400"
+              }`}
+              onClick={() => router.push("/profile")}
+            >
+              <User className="h-6 w-6" />
+              <span className="text-xs mt-1">Profile</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   ) : (

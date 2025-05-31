@@ -1,5 +1,5 @@
 // profile/business-profile.tsx (create this new component)
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Building2, Mail, Globe, MapPin } from "lucide-react";
@@ -25,6 +25,7 @@ interface BusinessProfileProps {
 
 export function BusinessProfile({ profile }: BusinessProfileProps) {
   const { data } = profile;
+  const [creditAmount, setCreditAmount] = useState(data.credit_amount || 0);
 
   return (
     <div className="space-y-6">
@@ -120,8 +121,9 @@ export function BusinessProfile({ profile }: BusinessProfileProps) {
         </CardHeader>
         <CardContent>
           <CreditManagement
-            creditAmount={data.credit_amount || 0}
+            creditAmount={creditAmount}
             usedAmount={data.used_amount || 0}
+            setCreditAmount={setCreditAmount}
           />
         </CardContent>
       </Card>

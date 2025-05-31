@@ -1,4 +1,3 @@
-// components/credit-management.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,20 +14,17 @@ import {
   CreditCard,
   Plus,
   Wallet,
-  Building2,
   Link2,
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import { useLinkAccount, usePrivy, useWallets } from "@privy-io/react-auth";
-import Image from "next/image";
-import { useBybitWebProof } from "@/hooks/vlayer/use-bybit-web-proof";
+import { useLinkAccount, useWallets } from "@privy-io/react-auth";
+import BinanceProofCard from "./proof-card/binance";
+import BybitProofCard from "./proof-card/bybit";
+import WalletProofComponent from "./proof-card/wallet";
+import GenerateProofComponent from "./test-proof/generate";
 import BinanceProofComponent from "./proof/binance";
 import BybitProofComponent from "./proof/bybit";
-import WalletProofComponent from "./proof/wallet";
-import { useBinanceWebProof } from "@/hooks/vlayer/use-binance-web-proof";
-import GenerateProofComponent from "./test-proof/generate";
-import { formatUnits } from "viem";
 
 interface CreditManagementProps {
   creditAmount: number;
@@ -51,7 +47,6 @@ export function CreditManagement({
   const [isGeneratingProof, setIsGeneratingProof] = useState(false);
   const [connectedWallets, setConnectedWallets] = useState<string[]>([]);
 
-  const { user } = usePrivy();
   const { wallets } = useWallets();
   const { linkWallet } = useLinkAccount({
     onSuccess: ({ linkedAccount }) => {
@@ -67,53 +62,6 @@ export function CreditManagement({
   });
   const availableCredits = creditAmount - usedAmount;
 
-  const {
-    requestWebProof: requestBinanceWebProof,
-    webProof: binanceWebProof,
-    callProver: callBinanceProver,
-    isPending: isBinancePending,
-    isCallProverIdle: isBinanceCallProverIdle,
-    isWaitingForProvingResult: isBinanceWaitingForProvingResult,
-    commitmentTxHash: binanceCommitmentTxHash,
-    txHash: binanceTxHash,
-    result: binanceResult,
-  } = useBinanceWebProof();
-
-  useEffect(() => {
-    if (
-      binanceWebProof &&
-      isBinanceCallProverIdle &&
-      user &&
-      user.wallet &&
-      user.wallet.address
-    ) {
-      void callBinanceProver([binanceWebProof, user.wallet.address]);
-    }
-  }, [binanceWebProof, user, callBinanceProver, isBinanceCallProverIdle]);
-
-  const {
-    requestWebProof: requestBybitWebProof,
-    webProof: bybitWebProof,
-    callProver: callBybitProver,
-    isPending: isBybitPending,
-    isCallProverIdle: isBybitCallProverIdle,
-    result: bybitResult,
-    commitmentTxHash: bybitCommitmentTxHash,
-    txHash: bybitTxHash,
-  } = useBybitWebProof();
-
-  useEffect(() => {
-    if (
-      bybitWebProof &&
-      isBybitCallProverIdle &&
-      user &&
-      user.wallet &&
-      user.wallet.address
-    ) {
-      void callBybitProver([bybitWebProof, user.wallet.address]);
-    }
-  }, [bybitWebProof, user, callBybitProver, isBybitCallProverIdle]);
-
   useEffect(() => {
     if (wallets) {
       setConnectedWallets(wallets.map((wallet) => wallet.address));
@@ -125,75 +73,31 @@ export function CreditManagement({
     linkWallet();
   };
 
-  // Update the handleGenerateProof function to handle the new flow
-  const handleGenerateProof = async (method: string) => {
-    setIsGeneratingProof(true);
-    // Simulate proof generation
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setIsGeneratingProof(false);
-    setIsSheetOpen(false);
+  // useEffect(() => {
+  //   if (bybitResult && bybitCommitmentTxHash && bybitTxHash) {
+  //     console.log("Bybit result:", bybitResult);
+  //     console.log("Bybit commitment tx hash:", bybitCommitmentTxHash);
+  //     console.log("Bybit tx hash:", bybitTxHash);
 
-    let proofMethodName = method;
-    if (method === "binance") {
-      proofMethodName = "Binance Web App";
-    } else if (method === "bybit") {
-      proofMethodName = "Bybit Web App";
-    } else if (method === "current-wallet") {
-      proofMethodName = "Current Wallet";
-    } else if (method.startsWith("wallet-")) {
-      proofMethodName = "External Wallet";
-    }
+  //     (async function () {
+  //       console.log("Upgrading credit amount");
+  //       await fetch("/api/businesses/upgrade", {
+  //         method: "POST",
+  //         body: JSON.stringify({
+  //           wallet: user?.wallet?.address,
+  //           amount: formatUnits(BigInt(bybitResult.toString()), 18),
+  //         }),
+  //       });
+  //       console.log("Credit amount upgraded");
+  //       setCreditAmount(
+  //         creditAmount +
+  //           parseFloat(formatUnits(BigInt(bybitResult.toString()), 18))
+  //       );
+  //     })();
+  //   }
+  // }, [bybitResult, bybitCommitmentTxHash, bybitTxHash]);
 
-    alert(`Proof generated successfully using ${proofMethodName}!`);
-  };
-
-  useEffect(() => {
-    if (binanceResult && binanceCommitmentTxHash && binanceTxHash) {
-      console.log("Binance result:", binanceResult);
-      console.log("Binance commitment tx hash:", binanceCommitmentTxHash);
-      console.log("Binance tx hash:", binanceTxHash);
-
-      (async function () {
-        console.log("Upgrading credit amount");
-        await fetch("/api/businesses/upgrade", {
-          method: "POST",
-          body: JSON.stringify({
-            wallet: user?.wallet?.address,
-            amount: formatUnits(BigInt(binanceResult.toString()), 18),
-          }),
-        });
-        console.log("Credit amount upgraded");
-        setCreditAmount(
-          creditAmount +
-            parseFloat(formatUnits(BigInt(binanceResult.toString()), 18))
-        );
-      })();
-    }
-  }, [binanceResult, binanceCommitmentTxHash, binanceTxHash]);
-
-  useEffect(() => {
-    if (bybitResult && bybitCommitmentTxHash && bybitTxHash) {
-      console.log("Bybit result:", bybitResult);
-      console.log("Bybit commitment tx hash:", bybitCommitmentTxHash);
-      console.log("Bybit tx hash:", bybitTxHash);
-
-      (async function () {
-        console.log("Upgrading credit amount");
-        await fetch("/api/businesses/upgrade", {
-          method: "POST",
-          body: JSON.stringify({
-            wallet: user?.wallet?.address,
-            amount: formatUnits(BigInt(bybitResult.toString()), 18),
-          }),
-        });
-        console.log("Credit amount upgraded");
-        setCreditAmount(
-          creditAmount +
-            parseFloat(formatUnits(BigInt(bybitResult.toString()), 18))
-        );
-      })();
-    }
-  }, [bybitResult, bybitCommitmentTxHash, bybitTxHash]);
+  useEffect(() => {}, []);
 
   return (
     <div className="space-y-4">
@@ -278,12 +182,12 @@ export function CreditManagement({
 
           <div className="space-y-4 mt-6">
             {/* Binance Web App Proof */}
-            <BinanceProofComponent
+            <BinanceProofCard
               selectedProofMethod={selectedProofMethod || ""}
               setSelectedProofMethod={setSelectedProofMethod}
             />
             {/* Bybit Web App Proof */}
-            <BybitProofComponent
+            <BybitProofCard
               selectedProofMethod={selectedProofMethod || ""}
               setSelectedProofMethod={setSelectedProofMethod}
             />
@@ -355,7 +259,7 @@ export function CreditManagement({
                 ) : (
                   <GenerateProofComponent
                     isGeneratingProof={isGeneratingProof}
-                    handleGenerateProof={handleGenerateProof}
+                    handleGenerateProof={() => {}}
                     selectedProofMethod={selectedProofMethod || ""}
                   />
                 )}
@@ -364,19 +268,18 @@ export function CreditManagement({
 
             {/* Generate Proof Button */}
             {selectedProofMethod &&
-              selectedProofMethod !== "external-wallet" && (
-                <GenerateProofComponent
-                  isGeneratingProof={isBinancePending || isBybitPending}
-                  handleGenerateProof={(method) => {
-                    if (method === "binance") {
-                      requestBinanceWebProof();
-                    } else if (method === "bybit") {
-                      requestBybitWebProof();
-                    }
-                  }}
-                  selectedProofMethod={selectedProofMethod || ""}
+              selectedProofMethod !== "external-wallet" &&
+              (selectedProofMethod == "bybit" ? (
+                <BybitProofComponent
+                  creditAmount={creditAmount}
+                  setCreditAmount={setCreditAmount}
                 />
-              )}
+              ) : (
+                <BinanceProofComponent
+                  creditAmount={creditAmount}
+                  setCreditAmount={setCreditAmount}
+                />
+              ))}
           </div>
         </SheetContent>
       </Sheet>

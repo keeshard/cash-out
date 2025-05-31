@@ -1,41 +1,77 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
+import GenerateProofComponent from "../test-proof/generate";
+import { useEffect } from "react";
+import { usePrivy } from "@privy-io/react-auth";
+import { formatUnits } from "viem";
+import { useBybitWebProof } from "@/hooks/vlayer/use-bybit-web-proof";
 
 export default function BybitProofComponent({
-  selectedProofMethod,
-  setSelectedProofMethod,
+  creditAmount,
+  setCreditAmount,
 }: {
-  selectedProofMethod: string;
-  setSelectedProofMethod: (method: string) => void;
+  creditAmount: number;
+  setCreditAmount: (amount: number) => void;
 }) {
+  const { user } = usePrivy();
+  const {
+    requestWebProof: requestBybitWebProof,
+    webProof: bybitWebProof,
+    callProver: callBybitProver,
+    isPending: isBybitPending,
+    isCallProverIdle: isBybitCallProverIdle,
+    isWaitingForProvingResult: isBybitWaitingForProvingResult,
+    commitmentTxHash: bybitCommitmentTxHash,
+    txHash: bybitTxHash,
+    result: bybitResult,
+  } = useBybitWebProof();
+
+  useEffect(() => {
+    if (
+      bybitWebProof &&
+      isBybitCallProverIdle &&
+      user &&
+      user.wallet &&
+      user.wallet.address
+    ) {
+      void callBybitProver([bybitWebProof, user.wallet.address]);
+    }
+  }, [bybitWebProof, user, callBybitProver, isBybitCallProverIdle]);
+
+  useEffect(() => {
+    if (bybitResult && bybitCommitmentTxHash && bybitTxHash) {
+      console.log("Bybit result:", bybitResult);
+      console.log("Bybit commitment tx hash:", bybitCommitmentTxHash);
+      console.log("Bybit tx hash:", bybitTxHash);
+
+      (async function () {
+        console.log("Upgrading credit amount");
+        await fetch("/api/businesses/upgrade", {
+          method: "POST",
+          body: JSON.stringify({
+            wallet: user?.wallet?.address,
+            amount: formatUnits(BigInt((bybitResult as any)[2].toString()), 18),
+          }),
+        });
+        console.log("Credit amount upgraded");
+        setCreditAmount(
+          creditAmount +
+            parseFloat(
+              formatUnits(BigInt((bybitResult as any)[2].toString()), 18)
+            )
+        );
+      })();
+    }
+  }, [bybitResult, bybitCommitmentTxHash, bybitTxHash]);
+
   return (
-    <Card
-      className={`bg-stone-800 border-stone-600 cursor-pointer transition-colors hover:border-yellow-400 ${
-        selectedProofMethod === "bybit" ? "border-yellow-400" : ""
-      }`}
-      onClick={() => setSelectedProofMethod("bybit")}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
-          <Image
-            src="/bybit.jpg"
-            alt="Bybit"
-            width={35}
-            height={35}
-            className="rounded-full"
-          />
-          <div className="flex-1">
-            <h3 className="text-white font-medium">Bybit Web App</h3>
-            <p className="text-gray-400 text-sm">
-              Generate ZK proof from to prove your assets value on Bybit
-            </p>
-          </div>
-          {selectedProofMethod === "bybit" && (
-            <CheckCircle className="h-5 w-5 text-yellow-400" />
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <GenerateProofComponent
+      isGeneratingProof={isBybitPending}
+      handleGenerateProof={() => {
+        requestBybitWebProof();
+      }}
+      selectedProofMethod="binance"
+    />
   );
 }
