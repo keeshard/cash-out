@@ -6,25 +6,45 @@
 
 ## ⚠️ Understanding the problem and need
 
+Late payments in B2B markets are **systemic and damaging**. Trillions are trapped in unpaid invoices, especially harming **freelancers and small businesses**. While privacy is essential, it hinders on-chain financial transparency—until now.
+
+Cash Out bridges the gap by offering **confidential solvency proofs**, **tamper-proof invoice validation**, and **instant stablecoin payouts**, all without trusting a centralized entity.
+
 ---
 
 ## 📦 Basic Description
 
-Cash Out is a decentralized invoice financing/payment platform built on the **Rootstock blockchain**. Users can create invoices which are then signed and approved by businesses and their authorized signers. Based on the business's reputation, the protocol provides instant liquidity before the invoice is settled.
-
-> The dApp is designed for a seamless, mobile-first experience using **Next.js 15**.
+**Cash Out** is a decentralized application (dApp) that enables instant invoice claims for freelancers and SMEs using **zero-knowledge proofs**. Built on **Rootstock** and powered by **vLayer**, it allows businesses to prove invoice legitimacy and solvency **without revealing sensitive data**. All claims are executed through Rootstock’s Attestation Service and settled in **stablecoins or $RIF** tokens.
 
 ### Technical Explainer
 
-- **Secure KYC:** Zero-knowledge KYC powered by Self Protocol
-- **Multi-party Signing:** Signatures from businesses and authorized representatives
-- **Protocol-based Liquidity:** Instant stablecoin funding based on trust scores
-- **Modern UI Stack:** Next.js App Router, Tailwind CSS, Shadcn UI, Radix UI
-- **Smart Contracts:** Solidity + Hardhat for backend logic
+- 🔐 Email parsing → zkSNARK circuit → cryptographic invoice proof
+- 🏦 Exchange API (e.g., Binance, Bybit) → ZK portfolio history proof
+- 🌉 Teleport + Time Travel zk-modules → multi-chain liquidity average
+- 📜 Rootstock Smart Contracts:
+  - zk verification
+  - claim processing
+  - attestation link with metadata hash
+- 💱 Oracle-powered price conversion using Pyth Network
+
+All interactions are **fully decentralized**, **permissionless**, and **privacy-preserving**.
+
+---
+
+## 🧪 Built With
+
+- **Rootstock**
+- **vLayer**
+- **Pyth Network**
+- **Rootstock Attestation Service**
+- **zkSNARKs / zk-STARKs**
+- **Teleport & Time Travel (ZK modules)**
 
 ---
 
 ## 🧠 Product Workflow
+
+![good](https://github.com/user-attachments/assets/ae138b65-98f2-4636-ba11-4bd2d5fc3901)
 
 ---
 
@@ -85,3 +105,10 @@ Multi asset USD conversion during vLayer Proof generation -
 Push Oracle Service Script -
 
 ---
+
+## 👤 Authors
+
+- Stinu Rabin 🛠️ Protocol Devloper 
+- Prateek 🔍 UI/UX Frontend
+
+__
