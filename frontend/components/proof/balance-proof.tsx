@@ -31,23 +31,20 @@ export const BalanceProofComponent = () => {
           disabled={isLoading}
           onClick={async () => {
             setIsLoading(true);
-            const tokens = getTokensToProve({
-              84532: 23833365,
-              11155420: 25816114,
-            });
+            // const tokens = getTokensToProve({
+            //   84532: 23833365,
+            //   11155420: 25816114,
+            // });
             console.log([
-              [
-                "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
-                "0x35BFcbcFEb65db335e65256690677eF26fE8da88",
-              ],
-              [84532, 11155420],
-              [25522814, 27505688],
+              "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
+              84532,
+              26284121,
               address,
             ]);
             callProver([
               "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
               84532,
-              25522814,
+              26284121,
               address,
             ]);
           }}
