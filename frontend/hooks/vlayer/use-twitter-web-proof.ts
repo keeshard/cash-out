@@ -1,0 +1,125 @@
+import { useEffect } from "react";
+import {
+  useCallProver,
+  useWaitForProvingResult,
+  useWebProof,
+} from "@vlayer/react";
+import { useLocalStorage } from "usehooks-ts";
+import { WebProofConfig, ProveArgs } from "@vlayer/sdk";
+import { Abi, ContractFunctionName } from "viem";
+import { sepolia, anvil } from "viem/chains";
+import { startPage, expectUrl, notarize } from "@vlayer/sdk/web_proof";
+import { WebProofError } from "@/lib/errors";
+import {
+  TWITTER_WEB_PROOF_ABI,
+  TWITTER_WEB_PROVER_ADDRESS,
+} from "@/lib/constants";
+
+const vlayerProverConfig: Omit<
+  ProveArgs<Abi, ContractFunctionName<Abi>>,
+  "args"
+> = {
+  address: TWITTER_WEB_PROVER_ADDRESS,
+  proverAbi: TWITTER_WEB_PROOF_ABI as Abi,
+  chainId: sepolia.id,
+  functionName: "main",
+};
+
+const webProofConfig: WebProofConfig<Abi, string> = {
+  proverCallCommitment: {
+    address: "0x0000000000000000000000000000000000000000",
+    proverAbi: [],
+    functionName: "proveWeb",
+    commitmentArgs: [],
+    chainId: 1,
+  },
+  logoUrl: "http://twitterswap.com/logo.png",
+  steps: [
+    startPage("https://x.com/", "Go to x.com login page"),
+    expectUrl("https://x.com/home", "Log in"),
+    notarize(
+      "https://api.x.com/1.1/account/settings.json",
+      "GET",
+      "Generate Proof of Twitter profile",
+      [
+        {
+          request: {
+            // redact all the headers
+            headers_except: [],
+          },
+        },
+        {
+          response: {
+            // response from api.x.com sometimes comes with Transfer-Encoding: Chunked
+            // which needs to be recognised by Prover and cannot be redacted
+            headers_except: ["Transfer-Encoding"],
+          },
+        },
+      ]
+    ),
+  ],
+};
+
+export const useTwitterWebProof = () => {
+  const {
+    requestWebProof,
+    webProof,
+    isPending: isWebProofPending,
+    error: webProofError,
+  } = useWebProof(webProofConfig);
+
+  if (webProofError) {
+    throw new WebProofError(webProofError.message);
+  }
+
+  const {
+    callProver,
+    isPending: isCallProverPending,
+    isIdle: isCallProverIdle,
+    data: hash,
+    error: callProverError,
+  } = useCallProver(vlayerProverConfig);
+
+  if (callProverError) {
+    throw callProverError;
+  }
+
+  const {
+    isPending: isWaitingForProvingResult,
+    data: result,
+    error: waitForProvingResultError,
+  } = useWaitForProvingResult(hash);
+
+  if (waitForProvingResultError) {
+    throw waitForProvingResultError;
+  }
+
+  const [, setWebProof] = useLocalStorage("webProof", "");
+  const [, setProverResult] = useLocalStorage("proverResult", "");
+
+  useEffect(() => {
+    if (webProof) {
+      console.log("webProof", webProof);
+      setWebProof(JSON.stringify(webProof));
+    }
+  }, [JSON.stringify(webProof)]);
+
+  useEffect(() => {
+    if (result) {
+      console.log("proverResult", result);
+      setProverResult(JSON.stringify(result));
+    }
+  }, [JSON.stringify(result)]);
+
+  return {
+    requestWebProof,
+    webProof,
+    isPending:
+      isWebProofPending || isCallProverPending || isWaitingForProvingResult,
+    isCallProverIdle,
+    isWaitingForProvingResult,
+    isWebProofPending,
+    callProver,
+    result,
+  };
+};

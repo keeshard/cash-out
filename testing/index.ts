@@ -1,8 +1,8 @@
 import { createPublicClient, http } from "viem";
 import { optimismSepolia, baseSepolia } from "viem/chains";
 
-const THREE_WEEKS_IN_SECONDS = 60 * 60 * 24 * 7 * 3;
-const targetTimestamp = Math.floor(Date.now() / 1000) - THREE_WEEKS_IN_SECONDS;
+const FOUR_DAYS_IN_SECONDS = 60 * 60 * 24 * 4;
+const targetTimestamp = Math.floor(Date.now() / 1000) - FOUR_DAYS_IN_SECONDS;
 
 async function findBlockAtTimestamp(
   client: ReturnType<typeof createPublicClient>,
@@ -29,7 +29,7 @@ async function findBlockAtTimestamp(
     }
   }
 
-  console.log(`${label} block from ~3 weeks ago:`, result.toString());
+  console.log(`${label} block from ~4 days ago:`, result.toString());
   return result;
 }
 
