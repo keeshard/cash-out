@@ -20,7 +20,7 @@ export default function AppProvider({
       config={{
         appearance: {
           theme: "dark",
-          logo: "http://cash-out.vercel.app/logo.jpg",
+          logo: "https://cash-out-invoices.vercel.app/logo.png",
           accentColor: "#FACC15",
           walletChainType: "ethereum-only",
           walletList: ["metamask", "rainbow"],

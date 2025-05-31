@@ -28,15 +28,18 @@ import BybitProofComponent from "./proof/bybit";
 import WalletProofComponent from "./proof/wallet";
 import { useBinanceWebProof } from "@/hooks/vlayer/use-binance-web-proof";
 import GenerateProofComponent from "./test-proof/generate";
+import { formatUnits } from "viem";
 
 interface CreditManagementProps {
   creditAmount: number;
   usedAmount: number;
+  setCreditAmount: (amount: number) => void;
 }
 
 export function CreditManagement({
   creditAmount,
   usedAmount,
+  setCreditAmount,
 }: CreditManagementProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProofMethod, setSelectedProofMethod] = useState<string | null>(
@@ -70,6 +73,9 @@ export function CreditManagement({
     callProver: callBinanceProver,
     isPending: isBinancePending,
     isCallProverIdle: isBinanceCallProverIdle,
+    isWaitingForProvingResult: isBinanceWaitingForProvingResult,
+    commitmentTxHash: binanceCommitmentTxHash,
+    txHash: binanceTxHash,
     result: binanceResult,
   } = useBinanceWebProof();
 
@@ -92,6 +98,8 @@ export function CreditManagement({
     isPending: isBybitPending,
     isCallProverIdle: isBybitCallProverIdle,
     result: bybitResult,
+    commitmentTxHash: bybitCommitmentTxHash,
+    txHash: bybitTxHash,
   } = useBybitWebProof();
 
   useEffect(() => {
@@ -138,6 +146,54 @@ export function CreditManagement({
 
     alert(`Proof generated successfully using ${proofMethodName}!`);
   };
+
+  useEffect(() => {
+    if (binanceResult && binanceCommitmentTxHash && binanceTxHash) {
+      console.log("Binance result:", binanceResult);
+      console.log("Binance commitment tx hash:", binanceCommitmentTxHash);
+      console.log("Binance tx hash:", binanceTxHash);
+
+      (async function () {
+        console.log("Upgrading credit amount");
+        await fetch("/api/businesses/upgrade", {
+          method: "POST",
+          body: JSON.stringify({
+            wallet: user?.wallet?.address,
+            amount: formatUnits(BigInt(binanceResult.toString()), 18),
+          }),
+        });
+        console.log("Credit amount upgraded");
+        setCreditAmount(
+          creditAmount +
+            parseFloat(formatUnits(BigInt(binanceResult.toString()), 18))
+        );
+      })();
+    }
+  }, [binanceResult, binanceCommitmentTxHash, binanceTxHash]);
+
+  useEffect(() => {
+    if (bybitResult && bybitCommitmentTxHash && bybitTxHash) {
+      console.log("Bybit result:", bybitResult);
+      console.log("Bybit commitment tx hash:", bybitCommitmentTxHash);
+      console.log("Bybit tx hash:", bybitTxHash);
+
+      (async function () {
+        console.log("Upgrading credit amount");
+        await fetch("/api/businesses/upgrade", {
+          method: "POST",
+          body: JSON.stringify({
+            wallet: user?.wallet?.address,
+            amount: formatUnits(BigInt(bybitResult.toString()), 18),
+          }),
+        });
+        console.log("Credit amount upgraded");
+        setCreditAmount(
+          creditAmount +
+            parseFloat(formatUnits(BigInt(bybitResult.toString()), 18))
+        );
+      })();
+    }
+  }, [bybitResult, bybitCommitmentTxHash, bybitTxHash]);
 
   return (
     <div className="space-y-4">
