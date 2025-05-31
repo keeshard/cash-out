@@ -1,0 +1,57 @@
+name: Rust prerequisites
+description: Installs Rust compilation prerequisites.
+inputs:
+  target:
+    description: 'Additional target support to install.'
+    required: false
+  include_risc0:
+    description: Whether to include risc0 installation
+    default: 'true'
+outputs:
+  RUSTC_WRAPPER:
+    description: "A rustc wrapper using sccache for optimalization"
+    value: ${{ steps.configure_sccache_wrapper.outputs.RUSTC_WRAPPER }}
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Rust
+      uses: actions-rust-lang/setup-rust-toolchain@11df97af8e8102fd60b60a77dfbf58d40cd843b8 # v1.10.1
+      with:
+        toolchain: nightly,1.85
+        components: clippy,rustfmt
+        cache: false
+        target: ${{ inputs.target }}
+
+    - name: Install sccache
+      uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+      with:
+        tool: sccache@0.9.0
+
+    # Configure env for the remaining steps of this composite action,
+    # and an output for workflows to use.
+    - name: Configure sccache wrapper
+      id: configure_sccache_wrapper
+      run: |
+        echo "RUSTC_WRAPPER=$(which sccache)" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=$(which sccache)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Install cargo binstall
+      uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+      with:
+        tool: cargo-binstall@1.10.8
+          
+    - name: Install cargo sort
+      uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+      with:
+        tool: cargo-sort@1.0.9
+
+    - name: Install cargo deny
+      uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+      with:
+        tool: cargo-deny@0.18.2
+
+    - name: Install cargo machete
+      uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # v2.0.1
+      with:
+        tool: cargo-machete@0.7.0

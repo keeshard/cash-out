@@ -1,0 +1,28 @@
+[package]
+name = "zkvm-benchmarks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true }
+block_header = { workspace = true, features = ["test-utils"] }
+block_trie = { workspace = true }
+call_precompiles = { workspace = true }
+common = { workspace = true }
+derive-new = { workspace = true }
+derive_more = { workspace = true }
+email_proof = { workspace = true }
+lazy_static = { workspace = true }
+mpt = { workspace = true }
+risc0-zkvm = { workspace = true }
+rsa = { workspace = true }
+serde = { workspace = true }
+sha2 = { workspace = true }
+
+[build-dependencies]
+derive-new = { workspace = true }
+lazy_static = { workspace = true }
+
+[lints]
+workspace = true

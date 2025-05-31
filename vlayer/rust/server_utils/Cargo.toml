@@ -1,0 +1,37 @@
+[package]
+name = "server_utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+alloy-primitives = { workspace = true }
+anyhow = { workspace = true }
+assert-json-diff = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true, features = ["typed-header"] }
+axum-jrpc = { workspace = true }
+clap = { workspace = true }
+common = { workspace = true }
+derive-new = { workspace = true }
+derive_more = { workspace = true }
+ethers = { workspace = true }
+hex = { workspace = true }
+host_utils = { workspace = true }
+http-body-util = { workspace = true }
+jsonrpsee = { workspace = true }
+jwt = { workspace = true }
+mime = { workspace = true }
+mockito = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["trace", "cors"] }
+tower-request-id = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true
