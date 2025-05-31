@@ -57,7 +57,7 @@ export const useEmailProofVerification = () => {
     data: proofHash,
     error: callProverError,
   } = useCallProver({
-    address: "0xF2d772ba64A3252B13C2B4B9D217BE681D898B86",
+    address: "0x7dAC79003E6D874A007dc7A146a0F6c4d517366E",
     proverAbi: EMAIL_PROVER_ABI as Abi,
     functionName: "proveInvoiceEmail",
     gasLimit: 10000000,
