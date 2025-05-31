@@ -9,11 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TwitterProofComponent } from "@/components/proof/twitter-proof";
-import { BybitProofComponent } from "@/components/proof/bybit-proof";
-import { InvoiceProofComponent } from "@/components/proof/invoice-proof";
-import { BalanceProofComponent } from "@/components/proof/balance-proof";
-import { BinanceProofComponent } from "@/components/proof/binance-proof";
+import { TwitterProofComponent } from "@/components/test-proof/twitter-proof";
+import { BybitProofComponent } from "@/components/test-proof/bybit-proof";
+import { InvoiceProofComponent } from "@/components/test-proof/invoice-proof";
+import { BalanceProofComponent } from "@/components/test-proof/balance-proof";
+import { BinanceProofComponent } from "@/components/test-proof/binance-proof";
 
 type ProofType = "twitter" | "bybit" | "binance" | "invoice" | "balance" | null;
 

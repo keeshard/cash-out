@@ -22,6 +22,12 @@ import {
 } from "lucide-react";
 import { useLinkAccount, usePrivy, useWallets } from "@privy-io/react-auth";
 import Image from "next/image";
+import { useBybitWebProof } from "@/hooks/vlayer/use-bybit-web-proof";
+import BinanceProofComponent from "./proof/binance";
+import BybitProofComponent from "./proof/bybit";
+import WalletProofComponent from "./proof/wallet";
+import { useBinanceWebProof } from "@/hooks/vlayer/use-binance-web-proof";
+import GenerateProofComponent from "./test-proof/generate";
 
 interface CreditManagementProps {
   creditAmount: number;
@@ -58,6 +64,48 @@ export function CreditManagement({
   });
   const availableCredits = creditAmount - usedAmount;
 
+  const {
+    requestWebProof: requestBinanceWebProof,
+    webProof: binanceWebProof,
+    callProver: callBinanceProver,
+    isPending: isBinancePending,
+    isCallProverIdle: isBinanceCallProverIdle,
+    result: binanceResult,
+  } = useBinanceWebProof();
+
+  useEffect(() => {
+    if (
+      binanceWebProof &&
+      isBinanceCallProverIdle &&
+      user &&
+      user.wallet &&
+      user.wallet.address
+    ) {
+      void callBinanceProver([binanceWebProof, user.wallet.address]);
+    }
+  }, [binanceWebProof, user, callBinanceProver, isBinanceCallProverIdle]);
+
+  const {
+    requestWebProof: requestBybitWebProof,
+    webProof: bybitWebProof,
+    callProver: callBybitProver,
+    isPending: isBybitPending,
+    isCallProverIdle: isBybitCallProverIdle,
+    result: bybitResult,
+  } = useBybitWebProof();
+
+  useEffect(() => {
+    if (
+      bybitWebProof &&
+      isBybitCallProverIdle &&
+      user &&
+      user.wallet &&
+      user.wallet.address
+    ) {
+      void callBybitProver([bybitWebProof, user.wallet.address]);
+    }
+  }, [bybitWebProof, user, callBybitProver, isBybitCallProverIdle]);
+
   useEffect(() => {
     if (wallets) {
       setConnectedWallets(wallets.map((wallet) => wallet.address));
@@ -79,6 +127,8 @@ export function CreditManagement({
 
     let proofMethodName = method;
     if (method === "binance") {
+      proofMethodName = "Binance Web App";
+    } else if (method === "bybit") {
       proofMethodName = "Bybit Web App";
     } else if (method === "current-wallet") {
       proofMethodName = "Current Wallet";
@@ -171,66 +221,22 @@ export function CreditManagement({
           </SheetHeader>
 
           <div className="space-y-4 mt-6">
+            {/* Binance Web App Proof */}
+            <BinanceProofComponent
+              selectedProofMethod={selectedProofMethod || ""}
+              setSelectedProofMethod={setSelectedProofMethod}
+            />
             {/* Bybit Web App Proof */}
-            <Card
-              className={`bg-stone-800 border-stone-600 cursor-pointer transition-colors hover:border-yellow-400 ${
-                selectedProofMethod === "binance" ? "border-yellow-400" : ""
-              }`}
-              onClick={() => setSelectedProofMethod("binance")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Image
-                    src="/binance.png"
-                    alt="Bybit"
-                    width={35}
-                    height={35}
-                    className="rounded-full"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium">Bybit Web App</h3>
-                    <p className="text-gray-400 text-sm">
-                      Generate ZK proof from to prove your assets value on Bybit
-                    </p>
-                  </div>
-                  {selectedProofMethod === "binance" && (
-                    <CheckCircle className="h-5 w-5 text-yellow-400" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <BybitProofComponent
+              selectedProofMethod={selectedProofMethod || ""}
+              setSelectedProofMethod={setSelectedProofMethod}
+            />
 
             {/* External Wallet Proof */}
-            <Card
-              className={`bg-stone-800 border-stone-600 cursor-pointer transition-colors hover:border-yellow-400 ${
-                selectedProofMethod === "external-wallet"
-                  ? "border-yellow-400"
-                  : ""
-              }`}
-              onClick={() => setSelectedProofMethod("external-wallet")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Image
-                    src="/privy.png"
-                    alt="Privy"
-                    width={35}
-                    height={35}
-                    className="rounded-full"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium">External Wallet</h3>
-                    <p className="text-gray-400 text-sm">
-                      Generate ZK proof to prove your avg balance across EVM
-                      chains
-                    </p>
-                  </div>
-                  {selectedProofMethod === "external-wallet" && (
-                    <CheckCircle className="h-5 w-5 text-yellow-400" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <WalletProofComponent
+              selectedProofMethod={selectedProofMethod || ""}
+              setSelectedProofMethod={setSelectedProofMethod}
+            />
 
             {/* Show wallet options only if External Wallet is selected */}
             {selectedProofMethod === "external-wallet" && (
@@ -291,23 +297,11 @@ export function CreditManagement({
                     )}
                   </Button>
                 ) : (
-                  <Button
-                    className="w-full bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-medium"
-                    onClick={() => handleGenerateProof(selectedProofMethod)}
-                    disabled={isGeneratingProof}
-                  >
-                    {isGeneratingProof ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating Proof...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Generate Proof
-                      </>
-                    )}
-                  </Button>
+                  <GenerateProofComponent
+                    isGeneratingProof={isGeneratingProof}
+                    handleGenerateProof={handleGenerateProof}
+                    selectedProofMethod={selectedProofMethod || ""}
+                  />
                 )}
               </div>
             )}
@@ -315,23 +309,17 @@ export function CreditManagement({
             {/* Generate Proof Button */}
             {selectedProofMethod &&
               selectedProofMethod !== "external-wallet" && (
-                <Button
-                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-medium"
-                  onClick={() => handleGenerateProof(selectedProofMethod)}
-                  disabled={isGeneratingProof}
-                >
-                  {isGeneratingProof ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating Proof...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Generate Proof
-                    </>
-                  )}
-                </Button>
+                <GenerateProofComponent
+                  isGeneratingProof={isBinancePending || isBybitPending}
+                  handleGenerateProof={(method) => {
+                    if (method === "binance") {
+                      requestBinanceWebProof();
+                    } else if (method === "bybit") {
+                      requestBybitWebProof();
+                    }
+                  }}
+                  selectedProofMethod={selectedProofMethod || ""}
+                />
               )}
           </div>
         </SheetContent>
