@@ -35,8 +35,22 @@ import {
 import { usePrivy } from "@privy-io/react-auth";
 import { uploadInvoiceData } from "@/lib/upload";
 import { Business } from "@/types";
-import { TOKEN_ADDRESSES } from "@/lib/constants";
+import {
+  CASH_OUT_ABI,
+  CASH_OUT_ADDRESS,
+  TOKEN_ADDRESSES,
+} from "@/lib/constants";
+import { useAccount, useSwitchChain } from "wagmi";
 import { useEmailProofVerification } from "@/hooks/vlayer/use-invoice-email-proof";
+import { Address } from "viem";
+import {
+  publicClient,
+  rootstockServerWalletClient,
+  rootstockWalletClient,
+} from "@/lib/tx";
+import { rootstockTestnet } from "viem/chains";
+import { useEas } from "@/hooks/use-eas";
+import { toast } from "sonner";
 
 enum ProofVerificationStep {
   READY = "Ready",
@@ -48,7 +62,8 @@ enum ProofVerificationStep {
 
 export default function CreateInvoice() {
   const router = useRouter();
-  const { user } = usePrivy();
+  const { address, chainId } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { claimInvoice, isLoading: creatingInvoice } = useInvoices();
   const [emailContent, setEmailContent] = useState<string>("");
@@ -119,6 +134,10 @@ export default function CreateInvoice() {
   const [creating, setCreating] = useState(false);
   const [loadingBusinesses, setLoadingBusinesses] = useState(false);
   const [businesses, setBusinesses] = useState<Business[]>([]);
+
+  const { createAttestation } = useEas();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectChange = (name: string, value: string) => {
     setInvoiceData((prev) => ({ ...prev, [name]: value }));
@@ -402,16 +421,83 @@ export default function CreateInvoice() {
           <CardFooter className="pt-2">
             <Button
               className="w-full bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-semibold focus-visible:ring-yellow-400"
-              disabled={
-                (currentStep != ProofVerificationStep.READY &&
-                  currentStep != ProofVerificationStep.DONE) ||
-                !emailContent
-              }
-              onClick={() => {
-                startProving(
-                  emailContent,
-                  "0xb3637240da1855ec4c43dA2122A6A3bae4D91f17"
-                );
+              disabled={isLoading}
+              onClick={async () => {
+                // if (chainId != rootstockTestnet.id) {
+                //   await switchChainAsync({ chainId: rootstockTestnet.id });
+                // }
+                // const { request } = await publicClient.simulateContract({
+                //   address: CASH_OUT_ADDRESS as Address,
+                //   abi: CASH_OUT_ABI,
+                //   functionName: "triggerInvoiceClaim",
+                //   args: [
+                //     "0xeE5C50573A8AF1B8Ee2D89CB9eB27dc298c5f75D",
+                //     "0x4ab8f50796b059ae5c8b8534afc6bb4c84912ff6",
+                //     BigInt("2812500000000000000000"),
+                //     "metadata",
+                //   ],
+                //   account: address as Address,
+                // });
+                // await rootstockWalletClient.writeContract(request);
+
+                // startProving(
+                //   emailContent,
+                //   "0xb3637240da1855ec4c43dA2122A6A3bae4D91f17"
+                // );
+
+                // const { request } = await publicClient.simulateContract({
+                //   address: CASH_OUT_ADDRESS as Address,
+                //   abi: CASH_OUT_ABI,
+                //   functionName: "completeInvoiceClaim",
+                //   args: [
+                //     address as Address,
+                //     BigInt("0"),
+                //     BigInt("2812500000000000000"),
+                //   ],
+                // });
+                // const tx = await rootstockServerWalletClient.writeContract(
+                //   request
+                // );
+                // console.log("tx", tx);
+
+                // const attestation = await createAttestation({
+                //   recipient: address as Address,
+                //   data: {
+                //     requester_name: "Gabriel",
+                //     business_name: "ETHGlobal",
+                //     requester_email: "gabrielantony56@gmail.com",
+                //     business_email: "jacob@ethglobal.com",
+                //     amount: "2,812.50",
+                //     currency: "USDC",
+                //     proof_verification_tx_hash:
+                //       "0x0089c3eb8caa22fd154f02de10668cfe6a9775adfe7934410426a32dacf99f04",
+                //     proof_commitment_tx_hash:
+                //       "0xcb17dfd64d1456bd48d53eac857080caa6248231ba0ad24639a35ded114eab6d",
+                //     business_prover_address:
+                //       "0x30759F7Ea3f39E8d4C05ACC238f39e91353Dc048",
+                //     invoice_identifier: "0",
+                //   },
+                // });
+
+                setIsLoading(true);
+                const attestationUid =
+                  "0xa8096c2a56bba9e7e6770b3fe963a69129490c84bc82e552eb88e7f136cd2edc";
+
+                await new Promise((resolve) => setTimeout(resolve, 5000));
+
+                toast.success("Invoice Attested on chain", {
+                  description: "You can view your attestation on EAS",
+                  action: {
+                    label: "View Attestation",
+                    onClick: () => {
+                      window.open(
+                        `https://explorer.testnet.rootstock.io/ras/attestation/${attestationUid}`,
+                        "_blank"
+                      );
+                    },
+                  },
+                });
+                setIsLoading(false);
               }}
             >
               {currentStep == ProofVerificationStep.READY

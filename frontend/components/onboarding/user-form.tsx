@@ -35,7 +35,7 @@ export default function UserForm({
 }: UserFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "gabrielantony56@gmail.com",
+    email: "keezharozali.25ec@gmail.com",
     country: "",
     external_link: "https://gabrielaxy.com",
   });

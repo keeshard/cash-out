@@ -17,6 +17,8 @@ import {
 } from "@/lib/errors";
 import { rootstock, rootstockTestnet, sepolia } from "viem/chains";
 import {
+  CASH_OUT_ABI,
+  CASH_OUT_ADDRESS,
   CASH_OUT_VERIFIER_ABI,
   CASH_OUT_VERIFIER_ADDRESS,
   EMAIL_PROVER_ABI,
@@ -133,8 +135,8 @@ export const useEmailProofVerification = () => {
           await switchChainAsync({ chainId: rootstockTestnet.id });
         }
         const { request } = await publicClient.simulateContract({
-          address: CASH_OUT_VERIFIER_ADDRESS as Address,
-          abi: CASH_OUT_VERIFIER_ABI,
+          address: CASH_OUT_ADDRESS as Address,
+          abi: CASH_OUT_ABI,
           functionName: "completeInvoiceClaim",
           args: [address as Address, "0", BigInt("2812500000000000000000")],
         });

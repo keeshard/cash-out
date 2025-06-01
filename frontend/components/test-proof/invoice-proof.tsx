@@ -104,22 +104,6 @@ export const InvoiceProofComponent = () => {
             !proverAddress
           }
           onClick={async () => {
-            if (chainId != rootstockTestnet.id) {
-              await switchChainAsync({ chainId: rootstockTestnet.id });
-            }
-            const { request } = await publicClient.simulateContract({
-              address: CASH_OUT_ADDRESS as Address,
-              abi: CASH_OUT_ABI,
-              functionName: "triggerInvoiceClaim",
-              args: [
-                "0x0429A2Da7884CA14E53142988D5845952fE4DF6a",
-                "0x4ab8f50796b059ae5c8b8534afc6bb4c84912ff6",
-                BigInt("2812500000000000000000"),
-                "metadata",
-              ],
-              account: address as Address,
-            });
-            await rootstockWalletClient.writeContract(request);
             startProving(emailContent, proverAddress);
           }}
           className="w-full"

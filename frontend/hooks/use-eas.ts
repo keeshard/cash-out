@@ -92,11 +92,8 @@ export function useEas(): UseEasReturn {
           });
         }
 
-        // Need signer for attestations
-        if (address) {
-          const provider = new ethers.BrowserProvider((window as any).ethereum);
-          eas.connect(provider);
-        }
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        eas.connect(provider);
         const schemaEncoder = new SchemaEncoder(
           "string requester_name, string business_name, string requester_email, string business_email, string amount, string currency, string proof_verification_tx_hash, string proof_commitment_tx_hash, string business_prover_address, string invoice_identifier"
         );

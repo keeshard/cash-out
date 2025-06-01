@@ -30,7 +30,7 @@ async function main() {
   // );
 
   await testUSDC.mint(
-    "0x935A5B36C923CDFfD3986f2488E92Cf2D1d8c09D",
+    "0x9b7a42bFE8f8Df9d43f368Baf9480fB7193Cf06a",
     ethers.parseUnits("1000000", 18)
   );
   // await testWBTC.mint(deployer.address, ethers.parseUnits("2", 8));

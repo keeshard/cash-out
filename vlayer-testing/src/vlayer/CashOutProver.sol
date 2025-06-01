@@ -96,61 +96,33 @@ contract CashOutProver is Prover {
         Erc20Token[] memory _tokens,
         address _owner
     ) public returns (Proof memory, address, uint256) {
-        uint256 avgUsdBalance = 0;
+        uint256 totalUsdBalance = 0;
 
-        // for (uint256 i = 0; i < _tokens.length; i++) {
-        //     for (uint256 j = 0; j < _tokens[i].addrs.length; j++) {
-        //         if (
-        //             supportedTokens[_tokens[i].addrs[j]].priceFeedId ==
-        //             bytes32(0)
-        //         ) {
-        //             continue;
-        //         }
-        //         uint256 totalAssetBalance = 0;
-        //         for (uint256 k = 0; k < ITERATIONS; k++) {
-        //             setChain(
-        //                 _tokens[i].chainId,
-        //                 _tokens[i].startBlock - k * BLOCK_INTERVAL
-        //             );
-        //             totalAssetBalance += IERC20(_tokens[i].addrs[j]).balanceOf(
-        //                 _owner
-        //             );
-        //         }
-        //     }
-        // }
-        // for (uint256 i = 0; i < _tokens.length; i++) {
-        //     for (uint256 j = 0; j < _tokens[i].addrs.length; j++) {
-        //         if (
-        //             supportedTokens[_tokens[i].addrs[j]].priceFeedId ==
-        //             bytes32(0)
-        //         ) {
-        //             continue;
-        //         }
-        //         uint256 totalAssetBalance = 0;
-        //         for (uint256 k = 0; k < ITERATIONS; k++) {
-        //             setChain(
-        //                 _tokens[i].chainId,
-        //                 _tokens[i].startBlock - k * BLOCK_INTERVAL
-        //             );
-        //             totalAssetBalance += IERC20(_tokens[i].addrs[j]).balanceOf(
-        //                 _owner
-        //             );
-        //         }
-        //     }
-        //     uint256 endBlock = _tokens[i].startBlock;
-        //     uint256 totalAssetBalance = 0;
-        //     for (
-        //         uint256 j = _tokens[i].startBlock;
-        //         j > endBlock;
-        //         j -= BLOCK_INTERVAL
-        //     ) {
-        //         setChain(_tokens[i].chainId, j);
-        //         totalAssetBalance += IERC20(_tokens[i].addr).balanceOf(_owner);
-        //     }
-        //     uint256 avgAssetBalance = totalAssetBalance / ITERATIONS;
-        //     avgUsdBalance += getUsdValue(_tokens[i].addr, avgAssetBalance);
-        // }
-        return (proof(), _owner, avgUsdBalance);
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            for (uint256 j = 0; j < _tokens[i].addrs.length; j++) {
+                address token = _tokens[i].addrs[j];
+
+                // Skip unsupported tokens
+                if (supportedTokens[token].priceFeedId == bytes32(0)) {
+                    continue;
+                }
+
+                // Calculate average balance across iterations
+                uint256 totalAssetBalance = 0;
+                for (uint256 k = 0; k < ITERATIONS; k++) {
+                    setChain(
+                        _tokens[i].chainId,
+                        _tokens[i].startBlock - k * BLOCK_INTERVAL
+                    );
+                    totalAssetBalance += IERC20(token).balanceOf(_owner);
+                }
+
+                uint256 avgAssetBalance = totalAssetBalance / ITERATIONS;
+                totalUsdBalance += getUsdValue(token, avgAssetBalance);
+            }
+        }
+
+        return (proof(), _owner, totalUsdBalance);
     }
 
     function proveBinanceFunds(

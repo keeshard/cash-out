@@ -39,10 +39,10 @@ contract EthGlobalInvoiceProver is Prover {
         UnverifiedEmail calldata unverifiedEmail
     ) public view returns (Proof memory, bytes32, address, uint256) {
         VerifiedEmail memory email = unverifiedEmail.verify();
-        // Claim memory claim = claims[msg.sender];
+        Claim memory claim = claims[msg.sender];
 
-        // _validateSubjectAndSender(email, claim);
-        // uint256 prizeAmount = _extractPrizeAmount(email.body, claim.email);
+        _validateSubjectAndSender(email, claim);
+        uint256 prizeAmount = _extractPrizeAmount(email.body, claim.email);
 
         return (
             proof(),
@@ -54,28 +54,28 @@ contract EthGlobalInvoiceProver is Prover {
 
     function _validateSubjectAndSender(
         VerifiedEmail memory email,
-        Claim memory _claim
+        Claim memory claim
     ) private view {
-        // string[] memory subjectCapture = email.subject.capture(
-        //     "^Congratulations on winning prizes at ([^\\n]+?) as part of project ([^\\n!]+)$"
-        // );
-        // require(subjectCapture.length == 2, "insufficient subject captures");
-        // require(
-        //     claim.hackathonName.equal(subjectCapture[0]),
-        //     "incorrect hackathon name"
-        // );
-        // require(
-        //     claim.projectName.equal(subjectCapture[1]),
-        //     "incorrect project name"
-        // );
-        // string[] memory emailCapture = email.from.capture(
-        //     "^6f0c1d8b-3bfc-4d76-8d90-5d740fa9be6e@proving\\.vlayer\\.xyz$"
-        // );
-        // require(emailCapture.length == 1, "invalid sender email");
-        // require(
-        //     emailCapture[0].equal(AUTHORIZED_EMAIL),
-        //     "invalid sender email"
-        // );
+        string[] memory subjectCapture = email.subject.capture(
+            "^Congratulations on winning prizes at ([^\\n]+?) as part of project ([^\\n!]+)$"
+        );
+        require(subjectCapture.length == 2, "insufficient subject captures");
+        require(
+            claim.hackathonName.equal(subjectCapture[0]),
+            "incorrect hackathon name"
+        );
+        require(
+            claim.projectName.equal(subjectCapture[1]),
+            "incorrect project name"
+        );
+        string[] memory emailCapture = email.from.capture(
+            "^6f0c1d8b-3bfc-4d76-8d90-5d740fa9be6e@proving\\.vlayer\\.xyz$"
+        );
+        require(emailCapture.length == 1, "invalid sender email");
+        require(
+            emailCapture[0].equal(AUTHORIZED_EMAIL),
+            "invalid sender email"
+        );
     }
 
     function _extractPrizeAmount(
