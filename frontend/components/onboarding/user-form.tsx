@@ -35,9 +35,9 @@ export default function UserForm({
 }: UserFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    email: "gabrielantony56@gmail.com",
     country: "",
-    external_link: "",
+    external_link: "https://gabrielaxy.com",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);

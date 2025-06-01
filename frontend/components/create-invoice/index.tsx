@@ -36,25 +36,81 @@ import { usePrivy } from "@privy-io/react-auth";
 import { uploadInvoiceData } from "@/lib/upload";
 import { Business } from "@/types";
 import { TOKEN_ADDRESSES } from "@/lib/constants";
+import { useEmailProofVerification } from "@/hooks/vlayer/use-invoice-email-proof";
+
+enum ProofVerificationStep {
+  READY = "Ready",
+  SENDING_TO_PROVER = "Sending to prover...",
+  WAITING_FOR_PROOF = "Waiting for proof...",
+  VERIFYING_ON_CHAIN = "Verifying on-chain...",
+  DONE = "Done!",
+}
 
 export default function CreateInvoice() {
   const router = useRouter();
   const { user } = usePrivy();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { claimInvoice, isLoading: creatingInvoice } = useInvoices();
+  const [emailContent, setEmailContent] = useState<string>("");
+
+  const { startProving, proof, currentStep } = useEmailProofVerification();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        let content = event.target?.result as string;
+
+        // Fix line endings first
+        content = content.replace(/\r\n/g, "\n").replace(/\n/g, "\r\n");
+
+        // Fix DKIM signature indentation (tabs to spaces)
+        content = content.replace(/\t/g, " ");
+
+        // Ensure there's a blank line between headers and body
+        const lines = content.split("\r\n");
+        let headerEndIndex = -1;
+
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].trim() === "") {
+            headerEndIndex = i;
+            break;
+          }
+        }
+
+        // If no blank line found, insert one after last header
+        if (headerEndIndex === -1) {
+          for (let i = lines.length - 1; i >= 0; i--) {
+            if (
+              lines[i].startsWith(" ") ||
+              lines[i].startsWith("\t") ||
+              lines[i].includes(":")
+            ) {
+              lines.splice(i + 1, 0, "");
+              break;
+            }
+          }
+          content = lines.join("\r\n");
+        }
+        console.log("email content");
+        console.log(content);
+        setEmailContent(content);
+      };
+      reader.readAsText(file);
+    }
+  };
   const [invoiceData, setInvoiceData] = useState<{
     title: string;
     description: string;
-    amount_requested: string;
     currency: string;
-    recipient: string;
+    business: string;
     invoice: File | null;
   }>({
-    title: "",
-    description: "",
-    amount_requested: "",
-    currency: "cUSD",
-    recipient: "",
+    title: "Trifecta Agents Hackathon",
+    description: "Claiming Hackathon bounty of the hackathon",
+    business: "",
+    currency: "",
     invoice: null,
   });
 
@@ -64,38 +120,43 @@ export default function CreateInvoice() {
   const [loadingBusinesses, setLoadingBusinesses] = useState(false);
   const [businesses, setBusinesses] = useState<Business[]>([]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingFile(true);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFilePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    setTimeout(() => {
-      setUploadingFile(false);
-      setInvoiceData((prev) => ({
-        ...prev,
-        invoice: file,
-      }));
-    }, 1500);
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setInvoiceData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSelectChange = (name: string, value: string) => {
     setInvoiceData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  // const handleSubmit = async () => {
+  //   if (profile?.type != "user") return;
+  //   setCreating(true);
+  //   try {
+  //     const { data, success, error } = await uploadInvoiceData({
+  //       title: invoiceData.title,
+  //       description: invoiceData.description,
+  //       invoice: invoiceData.invoice,
+  //     });
+
+  //     if (!data || !success) {
+  //       throw new Error(error || "Failed to upload invoice data");
+  //     }
+
+  //     await claimInvoice({
+  //       title: invoiceData.title,
+  //       description: invoiceData.description,
+  //       requester: user?.wallet?.address as string,
+  //       requestee: invoiceData.recipient,
+  //       amount_requested: parseFloat(invoiceData.amount_requested),
+  //       currency: invoiceData.currency,
+  //       invoice: data.invoiceUrl,
+  //     });
+
+  //     router.push("/");
+  //   } catch (error) {
+  //     console.error("Error creating invoice:", error);
+  //   } finally {
+  //     setCreating(false);
+  //   }
+  // };
+
+  const handleGenerateProof = async () => {
     if (profile?.type != "user") return;
     setCreating(true);
     try {
@@ -104,24 +165,8 @@ export default function CreateInvoice() {
         description: invoiceData.description,
         invoice: invoiceData.invoice,
       });
-
-      if (!data || !success) {
-        throw new Error(error || "Failed to upload invoice data");
-      }
-
-      await claimInvoice({
-        title: invoiceData.title,
-        description: invoiceData.description,
-        requester: user?.wallet?.address as string,
-        requestee: invoiceData.recipient,
-        amount_requested: parseFloat(invoiceData.amount_requested),
-        currency: invoiceData.currency,
-        invoice: data.invoiceUrl,
-      });
-
-      router.push("/");
     } catch (error) {
-      console.error("Error creating invoice:", error);
+      console.error("Error generating proof:", error);
     } finally {
       setCreating(false);
     }
@@ -184,7 +229,12 @@ export default function CreateInvoice() {
                 id="title"
                 name="title"
                 value={invoiceData.title}
-                onChange={handleInputChange}
+                onChange={(e) =>
+                  setInvoiceData((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
                 placeholder="e.g., Website Development"
                 className="bg-stone-800 border-stone-700 text-white focus-visible:ring-yellow-400 placeholder:text-gray-500"
               />
@@ -198,7 +248,12 @@ export default function CreateInvoice() {
                 id="description"
                 name="description"
                 value={invoiceData.description}
-                onChange={handleInputChange}
+                onChange={(e) =>
+                  setInvoiceData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Describe the services or products provided"
                 className="min-h-[100px] bg-stone-800 border-stone-700 text-white focus-visible:ring-yellow-400 placeholder:text-gray-500"
               />
@@ -242,74 +297,56 @@ export default function CreateInvoice() {
                   : "Client to Invoice"}
               </Label>
 
-              {profile?.type == "user" ? (
-                <Select
-                  value={invoiceData.recipient}
-                  onValueChange={(value: string) =>
-                    handleSelectChange("recipient", value)
-                  }
+              <Select
+                value={invoiceData.business}
+                onValueChange={(value: string) =>
+                  handleSelectChange("business", value)
+                }
+              >
+                <SelectTrigger
+                  disabled={!businesses || businesses.length === 0}
+                  className="bg-stone-800 border-stone-700 text-white focus-visible:ring-yellow-400 data-[placeholder]:text-white disabled:text-gray-500"
                 >
-                  <SelectTrigger
-                    disabled={!businesses || businesses.length === 0}
-                    className="bg-stone-800 border-stone-700 text-white focus-visible:ring-yellow-400 data-[placeholder]:text-white disabled:text-gray-500"
-                  >
-                    <SelectValue
-                      placeholder={
-                        !businesses || businesses.length === 0
-                          ? "No businesses found"
-                          : "Select a business"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="bg-stone-800 border-stone-700 text-white">
-                    {businesses.map((business) => (
-                      <SelectItem
-                        key={business.wallet_address}
-                        value={business.wallet_address}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src={business.image || "/placeholder-logo.png"}
-                            alt={business.name || "Business Logo"}
-                            width={24}
-                            height={24}
-                            className="w-6 h-6 rounded-full object-cover"
-                          />
-                          <span>{business.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="recipient"
-                  name="recipient"
-                  value={invoiceData.recipient}
-                  onChange={handleInputChange}
-                  placeholder="Enter wallet address"
-                  className="bg-stone-800 border-stone-700 text-white focus-visible:ring-yellow-400"
-                />
-              )}
+                  <SelectValue
+                    placeholder={
+                      !businesses || businesses.length === 0
+                        ? "No businesses found"
+                        : "Select a business"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="bg-stone-800 border-stone-700 text-white">
+                  {businesses.map((business) => (
+                    <SelectItem
+                      key={business.wallet_address}
+                      value={business.wallet_address}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={business.image || "/placeholder-logo.png"}
+                          alt={business.name || "Business Logo"}
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                        <span>{business.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-200">Upload Invoice Document</Label>
+              <Label className="text-gray-200">
+                Upload Invoice Email (.eml file)*
+              </Label>
               <div className="border-2 border-dashed border-stone-700 rounded-xl p-4 bg-stone-800/50">
                 <div className="flex flex-col items-center justify-center">
                   {filePreview ? (
                     <div className="w-full">
-                      <div className="relative aspect-[4/5] max-h-48 overflow-hidden rounded-xl mb-2">
-                        <Image
-                          src={filePreview}
-                          alt="Invoice preview"
-                          width={192}
-                          height={240}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-300 truncate max-w-[200px]">
+                        <p className="text-sm text-gray-300 truncate max-w-[200px]">
                           {invoiceData.invoice?.name || "Uploading..."}
                         </p>
                         <Button
@@ -332,7 +369,7 @@ export default function CreateInvoice() {
                     <>
                       <Upload className="h-10 w-10 text-gray-400 mb-2" />
                       <p className="text-sm text-gray-300 mb-2">
-                        Drag & drop or click to upload
+                        Drag & drop or click to upload .eml file
                       </p>
                       <div className="relative">
                         <Button
@@ -349,8 +386,8 @@ export default function CreateInvoice() {
                           Select File
                           <input
                             type="file"
-                            accept="image/*,.pdf"
-                            onChange={handleFileUpload}
+                            accept=".eml"
+                            onChange={handleFileChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           />
                         </Button>
@@ -366,27 +403,32 @@ export default function CreateInvoice() {
             <Button
               className="w-full bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-semibold focus-visible:ring-yellow-400"
               disabled={
-                !invoiceData.title ||
-                !invoiceData.amount_requested ||
-                !invoiceData.recipient ||
-                creatingInvoice ||
-                !invoiceData.invoice ||
-                creating
+                (currentStep != ProofVerificationStep.READY &&
+                  currentStep != ProofVerificationStep.DONE) ||
+                !emailContent
               }
-              onClick={handleSubmit}
+              onClick={() => {
+                startProving(
+                  emailContent,
+                  "0xb3637240da1855ec4c43dA2122A6A3bae4D91f17"
+                );
+              }}
             >
-              {creatingInvoice || creating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Creating Invoice...
-                </>
-              ) : (
-                <>
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Create Invoice
-                </>
-              )}
+              {currentStep == ProofVerificationStep.READY
+                ? "Generate Invoice Proof"
+                : currentStep === ProofVerificationStep.SENDING_TO_PROVER
+                ? "Proving in progress..."
+                : currentStep === ProofVerificationStep.WAITING_FOR_PROOF
+                ? "Waiting for proof..."
+                : currentStep === ProofVerificationStep.VERIFYING_ON_CHAIN
+                ? "Verifying on-chain..."
+                : "Done!"}
             </Button>
+            {proof != null && (
+              <div className="text-sm text-green-600">
+                <p>✓ Proof generated successfully</p>
+              </div>
+            )}
           </CardFooter>
         </Card>
       </div>

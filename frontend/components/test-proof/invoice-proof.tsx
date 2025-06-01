@@ -6,6 +6,11 @@ import { useEmailProofVerification } from "@/hooks/vlayer/use-invoice-email-proo
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAccount, useSwitchChain } from "wagmi";
+import { rootstockTestnet } from "viem/chains";
+import { publicClient, rootstockWalletClient } from "@/lib/tx";
+import { CASH_OUT_ABI, CASH_OUT_ADDRESS } from "@/lib/constants";
+import { Address } from "viem";
 
 enum ProofVerificationStep {
   READY = "Ready",
@@ -18,6 +23,8 @@ enum ProofVerificationStep {
 export const InvoiceProofComponent = () => {
   const [emailContent, setEmailContent] = useState<string>("");
   const [proverAddress, setProverAddress] = useState<string>("");
+  const { address, chainId } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
 
   const { startProving, proof, currentStep } = useEmailProofVerification();
 
@@ -96,7 +103,23 @@ export const InvoiceProofComponent = () => {
             !emailContent ||
             !proverAddress
           }
-          onClick={() => {
+          onClick={async () => {
+            if (chainId != rootstockTestnet.id) {
+              await switchChainAsync({ chainId: rootstockTestnet.id });
+            }
+            const { request } = await publicClient.simulateContract({
+              address: CASH_OUT_ADDRESS as Address,
+              abi: CASH_OUT_ABI,
+              functionName: "triggerInvoiceClaim",
+              args: [
+                "0x0429A2Da7884CA14E53142988D5845952fE4DF6a",
+                "0x4ab8f50796b059ae5c8b8534afc6bb4c84912ff6",
+                BigInt("2812500000000000000000"),
+                "metadata",
+              ],
+              account: address as Address,
+            });
+            await rootstockWalletClient.writeContract(request);
             startProving(emailContent, proverAddress);
           }}
           className="w-full"

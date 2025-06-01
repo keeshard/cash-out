@@ -4,26 +4,24 @@ import {
   useWaitForTransactionReceipt,
   useAccount,
   useBalance,
+  useSwitchChain,
 } from "wagmi";
-import {
-  useCallProver,
-  useWaitForProvingResult,
-  useChain,
-} from "@vlayer/react";
+import { useCallProver, useWaitForProvingResult } from "@vlayer/react";
 import { preverifyEmail } from "@vlayer/sdk";
-import { Abi, AbiStateMutability, ContractFunctionArgs } from "viem";
+import { Abi, Address } from "viem";
 import {
   AlreadyMintedError,
   NoProofError,
   CallProverError,
   PreverifyError,
 } from "@/lib/errors";
-import { sepolia } from "viem/chains";
+import { rootstock, rootstockTestnet, sepolia } from "viem/chains";
 import {
   CASH_OUT_VERIFIER_ABI,
   CASH_OUT_VERIFIER_ADDRESS,
   EMAIL_PROVER_ABI,
 } from "@/lib/constants";
+import { publicClient, rootstockServerWalletClient } from "@/lib/tx";
 
 enum ProofVerificationStep {
   READY = "Ready",
@@ -34,12 +32,13 @@ enum ProofVerificationStep {
 }
 
 export const useEmailProofVerification = () => {
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
   const [prover, setProver] = useState<string>("");
   const { data: balance } = useBalance({ address });
   const [currentStep, setCurrentStep] = useState<ProofVerificationStep>(
     ProofVerificationStep.READY
   );
+  const { switchChainAsync } = useSwitchChain();
 
   const {
     writeContract,
@@ -57,7 +56,7 @@ export const useEmailProofVerification = () => {
     data: proofHash,
     error: callProverError,
   } = useCallProver({
-    address: "0x7dAC79003E6D874A007dc7A146a0F6c4d517366E",
+    address: "0xb3637240da1855ec4c43dA2122A6A3bae4D91f17",
     proverAbi: EMAIL_PROVER_ABI as Abi,
     functionName: "proveInvoiceEmail",
     gasLimit: 10000000,
@@ -89,6 +88,9 @@ export const useEmailProofVerification = () => {
       args: [proof, prover],
     };
 
+    if (chainId != sepolia.id) {
+      await switchChainAsync({ chainId: sepolia.id });
+    }
     writeContract(contractArgs);
   };
 
@@ -123,6 +125,24 @@ export const useEmailProofVerification = () => {
       const proofArray = proof as unknown[];
     }
   }, [status]);
+
+  useEffect(() => {
+    if (txHash) {
+      (async function () {
+        if (chainId != rootstockTestnet.id) {
+          await switchChainAsync({ chainId: rootstockTestnet.id });
+        }
+        const { request } = await publicClient.simulateContract({
+          address: CASH_OUT_VERIFIER_ADDRESS as Address,
+          abi: CASH_OUT_VERIFIER_ABI,
+          functionName: "completeInvoiceClaim",
+          args: [address as Address, "0", BigInt("2812500000000000000000")],
+        });
+        const tx = await rootstockServerWalletClient.writeContract(request);
+        console.log("tx", tx);
+      })();
+    }
+  }, [txHash]);
 
   useEffect(() => {
     if (verificationError) {
