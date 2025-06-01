@@ -109,6 +109,6 @@ Push Oracle Service Script -
 ## 👤 Authors
 
 - Stinu Rabin 🛠️ Protocol Devloper 
-- Prateek 🔍 UI/UX Frontend
+- Keesha 🔍 UI/UX Frontend
 
 __
